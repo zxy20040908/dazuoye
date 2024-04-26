@@ -6,7 +6,6 @@ import java.util.*;
 
 public class SubwayMap {
     private Map<String, Map<String, Double>> map;
-
     public SubwayMap() {
         this.map = new LinkedHashMap<>();
     }
@@ -47,28 +46,40 @@ public class SubwayMap {
 
         return transferStations;
     }
-    public Set<String> getNearbyStations(String stationName, double distanceThreshold) {
-        if (!map.values().contains(stationName)) {
-            throw new IllegalArgumentException("站点名称不合规");
-        }
-
-        Set<String> nearbyStations = new HashSet<>();
-        Map<String, Double> currentLine = map.get(stationName);
-        for (String line : currentLine.keySet()) {
-            for (String otherStation : map.get(line).keySet()) {
-                if (!otherStation.equals(stationName) && map.get(line).get(otherStation) <= distanceThreshold) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("<<").append(otherStation).append("站，").append(line).append(" 号线，")
-                            .append(map.get(line).get(otherStation)).append(">>");
-                    nearbyStations.add(sb.toString());
-                }
+    public String getNearbyStations(String stationName) {
+        for(Map.Entry<String, Map<String, Double>> entry : map.entrySet()){
+            String line = entry.getKey();
+            Map<String, Double> stations = entry.getValue();
+            if (stations.containsKey(stationName)) {
+                return line;
             }
         }
-
-        return nearbyStations;
+        return null; // Station not found in any line
+//
+//        Set<String> nearbyStations = new HashSet<>();
+//        Map<String, Double> currentLine = map.get(stationName);
+//        for (String line : currentLine.keySet()) {
+//            for (String otherStation : map.get(line).keySet()) {
+//                if (!otherStation.equals(stationName) && map.get(line).get(otherStation) <= distanceThreshold) {
+//                    StringBuilder sb = new StringBuilder();
+//                    sb.append("<<").append(otherStation).append("站，").append(line).append(" 号线，")
+//                            .append(map.get(line).get(otherStation)).append(">>");
+//                    nearbyStations.add(sb.toString());
+//                }
+//            }
+//        }
     }
-
-
+    public Set<String> findLinesByStation(String stationName) {
+        Set<String> lines = new HashSet<>();
+        for (Map.Entry<String, Map<String, Double>> entry :map.entrySet()) {
+            String line = entry.getKey();
+            Map<String, Double> stations = entry.getValue();
+            if (stations.containsKey(stationName)) {
+                lines.add(line);
+            }
+        }
+        return lines;
+    }
 
     @Override
     public String toString() {
@@ -78,8 +89,6 @@ public class SubwayMap {
 
     public static void main(String[] args) {
         SubwayMap subwayMap = new SubwayMap();
-
-
         try (BufferedReader br = new BufferedReader(new FileReader("F:/subway.txt"))) {
             String line;
             String currentLine = null;
@@ -103,20 +112,9 @@ public class SubwayMap {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(subwayMap);
-        Set<String> transferStations = subwayMap.getTransferStations();
-        System.out.println("换乘:");
-        for (String station : transferStations) {
-            System.out.print(station);
-        }
-//        Set<String> nearbys=subwayMap.getNearbyStations("华中科技大学站",2);
-//        for (String station : nearbys) {
-//            System.out.println(station);
-//        }
+        //System.out.println(subwayMap);
+        System.out.println(subwayMap.findLinesByStation("中南路"));
 
-
-
-        // Example usage
 
     }
 }
