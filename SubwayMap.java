@@ -3,10 +3,46 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
+class StationInfo {
+    String stationName;
+    String lineName;
+    int distance;
 
+    public StationInfo(String stationName, String lineName, int distance) {
+        this.stationName = stationName;
+        this.lineName = lineName;
+        this.distance = distance;
+    }
+
+    @Override
+    public String toString() {
+        return "<" + stationName + "，" + lineName + "号线，" + distance + ">";
+    }
+}
+class TransferStationInfo {
+    String stationName;
+    Set<String> lines;
+
+    public TransferStationInfo(String stationName) {
+        this.stationName = stationName;
+        this.lines = new HashSet<>();
+    }
+
+    public void addLine(String line) {
+        lines.add(line);
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                 stationName +
+                  lines +
+                '}';
+    }
+}
 public class SubwayMap {
     private Map<String, Map<String, Double>> map;
-
     public SubwayMap() {
         this.map = new LinkedHashMap<>();
     }
@@ -22,63 +58,68 @@ public class SubwayMap {
     public double getDistance(String lineName, String station1, String station2) {
         return map.get(lineName).get(station1) + map.get(lineName).get(station2);
     }
-    public Set<String> getTransferStations() {
-        Map<String, Set<String>> stationLines = new HashMap<>();
+    public Map<String, TransferStationInfo> getTransferStations() {
+        Map<String, TransferStationInfo> transferStations = new HashMap<>();
         for (String line : map.keySet()) {
             for (String station : map.get(line).keySet()) {
-                stationLines.putIfAbsent(station, new HashSet<>());
-                stationLines.get(station).add(line);
+                transferStations.putIfAbsent(station, new TransferStationInfo(station));
+                transferStations.get(station).addLine(line);
             }
         }
 
-        Set<String> transferStations = new HashSet<>();
-        for (String station : stationLines.keySet()) {
-            if (stationLines.get(station).size() > 1) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("<").append(station).append(", <");
-                for (String line : stationLines.get(station)) {
-                    sb.append(line).append(" 号线、");
-                }
-                sb.setLength(sb.length() - 1); // Remove the last comma
-                sb.append(">>");
-                transferStations.add(sb.toString());
-            }
-        }
-
-        return transferStations;
+        // 只保留实际为换乘站的项
+        return transferStations.entrySet().stream()
+                .filter(entry -> entry.getValue().lines.size() > 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
-    public Set<String> getNearbyStations(String stationName, double distanceThreshold) {
-        if (!map.values().contains(stationName)) {
-            throw new IllegalArgumentException("站点名称不合规");
-        }
-
+    public Set<String> findNearbyStations(String stationName, int n) {
         Set<String> nearbyStations = new HashSet<>();
-        Map<String, Double> currentLine = map.get(stationName);
-        for (String line : currentLine.keySet()) {
-            for (String otherStation : map.get(line).keySet()) {
-                if (!otherStation.equals(stationName) && map.get(line).get(otherStation) <= distanceThreshold) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("<<").append(otherStation).append("站，").append(line).append(" 号线，")
-                            .append(map.get(line).get(otherStation)).append(">>");
-                    nearbyStations.add(sb.toString());
+        for (String line : map.keySet()) {
+            List<String> stations = new ArrayList<>(map.get(line).keySet());
+            int index = stations.indexOf(stationName);
+            if (index != -1) { // 如果找到了该站点
+                // 查找前n个站点
+                for (int i = Math.max(0, index - n); i < index; i++) {
+                    nearbyStations.add(String.format("%s，%s号线，%d", stations.get(i), line, index - i));
+                }
+                // 查找后n个站点
+                for (int i = index + 1; i <= Math.min(index + n, stations.size() - 1); i++) {
+                    nearbyStations.add(String.format("%s，%s号线，%d", stations.get(i), line, i - index));
                 }
             }
         }
-
         return nearbyStations;
     }
 
 
 
+    public Set<String> findLinesByStation(String stationName) {
+        Set<String> lines = new HashSet<>();
+        for (Map.Entry<String, Map<String, Double>> entry :map.entrySet()) {
+            String line = entry.getKey();
+            Map<String, Double> stations = entry.getValue();
+            if (stations.containsKey(stationName)) {
+                lines.add(line);
+            }
+        }
+        return lines;
+    }
+
+
+
+
+
+
+
+
     @Override
     public String toString() {
-        return this.map.values().toString();
+        return this.map.toString();
     }
 
 
     public static void main(String[] args) {
         SubwayMap subwayMap = new SubwayMap();
-
 
         try (BufferedReader br = new BufferedReader(new FileReader("F:/subway.txt"))) {
             String line;
@@ -103,20 +144,9 @@ public class SubwayMap {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(subwayMap);
-        Set<String> transferStations = subwayMap.getTransferStations();
-        System.out.println("换乘:");
-        for (String station : transferStations) {
-            System.out.print(station);
-        }
-//        Set<String> nearbys=subwayMap.getNearbyStations("华中科技大学站",2);
-//        for (String station : nearbys) {
-//            System.out.println(station);
-//        }
-
-
-
-        // Example usage
+        System.out.println(subwayMap.getTransferStations().values());
+        Set<String> stations = subwayMap.findNearbyStations("华中科技大学", 1);
+        System.out.println(stations);
 
     }
 }
