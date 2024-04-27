@@ -72,6 +72,7 @@ public class SubwayMap {
                 .filter(entry -> entry.getValue().lines.size() > 1)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
+<<<<<<< HEAD
     public Set<String> findNearbyStations(String stationName, int n) {
         Set<String> nearbyStations = new HashSet<>();
         for (String line : map.keySet()) {
@@ -89,9 +90,42 @@ public class SubwayMap {
             }
         }
         return nearbyStations;
+=======
+    public String getNearbyStations(String stationName) {
+        for(Map.Entry<String, Map<String, Double>> entry : map.entrySet()){
+            String line = entry.getKey();
+            Map<String, Double> stations = entry.getValue();
+            if (stations.containsKey(stationName)) {
+                return line;
+            }
+        }
+        return null; // Station not found in any line
+//
+//        Set<String> nearbyStations = new HashSet<>();
+//        Map<String, Double> currentLine = map.get(stationName);
+//        for (String line : currentLine.keySet()) {
+//            for (String otherStation : map.get(line).keySet()) {
+//                if (!otherStation.equals(stationName) && map.get(line).get(otherStation) <= distanceThreshold) {
+//                    StringBuilder sb = new StringBuilder();
+//                    sb.append("<<").append(otherStation).append("站，").append(line).append(" 号线，")
+//                            .append(map.get(line).get(otherStation)).append(">>");
+//                    nearbyStations.add(sb.toString());
+//                }
+//            }
+//        }
     }
-
-
+    public Set<String> findLinesByStation(String stationName) {
+        Set<String> lines = new HashSet<>();
+        for (Map.Entry<String, Map<String, Double>> entry :map.entrySet()) {
+            String line = entry.getKey();
+            Map<String, Double> stations = entry.getValue();
+            if (stations.containsKey(stationName)) {
+                lines.add(line);
+            }
+        }
+        return lines;
+>>>>>>> f19247179ca3418b650729941dded36e5b926a85
+    }
 
     public Set<String> findLinesByStation(String stationName) {
         Set<String> lines = new HashSet<>();
@@ -120,7 +154,10 @@ public class SubwayMap {
 
     public static void main(String[] args) {
         SubwayMap subwayMap = new SubwayMap();
+<<<<<<< HEAD
 
+=======
+>>>>>>> f19247179ca3418b650729941dded36e5b926a85
         try (BufferedReader br = new BufferedReader(new FileReader("F:/subway.txt"))) {
             String line;
             String currentLine = null;
@@ -144,9 +181,15 @@ public class SubwayMap {
         } catch (IOException e) {
             e.printStackTrace();
         }
+<<<<<<< HEAD
         System.out.println(subwayMap.getTransferStations().values());
         Set<String> stations = subwayMap.findNearbyStations("华中科技大学", 1);
         System.out.println(stations);
+=======
+        //System.out.println(subwayMap);
+        System.out.println(subwayMap.findLinesByStation("中南路"));
+
+>>>>>>> f19247179ca3418b650729941dded36e5b926a85
 
     }
 }
