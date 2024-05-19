@@ -33,8 +33,6 @@ public class SubwaySystem {
     public static String getLineName() {
         return lineName;
     }
-
-
     public static void SearchLineByStation() {
         Scanner sc = new Scanner(System.in);
         System.out.println("请输入需要查询的站点名称：");
@@ -70,6 +68,7 @@ public class SubwaySystem {
     public static void main(String[] args) {
         SubwaySystem sub = new SubwaySystem();
         initial.init(sub);
+
         Frame f = new Frame("武汉地铁模拟系统-智建2201周潇怡");
         f.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -107,7 +106,7 @@ public class SubwaySystem {
         String str = null;
         int flag = 0;
         try {
-            br = new BufferedReader(new FileReader("F:\\IntelliJ IDEA 2024.1\\intellij project\\learningproject\\src\\subway2.txt"));
+            br = new BufferedReader(new FileReader("F:\\IntelliJ IDEA 2024.1\\intellij project\\learningproject\\src\\大作业\\subway2.txt"));
             str = "";
             while ((str = br.readLine()) != null) {
                 if (str.charAt(0) != '-') {
@@ -144,7 +143,6 @@ public class SubwaySystem {
         System.out.println("普通票的票价是" + countFare(start, end) + "元");
         double temp_fare = (double) (Math.round(countFare(start, end) * 0.9f * 10) / 10.0);
         System.out.println("武汉通的票价是" + temp_fare + "元");
-        System.out.println("注：1日票18元/张，3日票45元/张，7日票90元/张");
     }
 
     public static void number() {
@@ -241,17 +239,18 @@ public class SubwaySystem {
         return distance;
     }
 
-    private static int countFare(String startSite, String endSite) {
+    private static double countFare(String startSite, String endSite) {
+        System.out.println("日票价格0元");
         if (getDis(startSite, endSite) <= 4)
             return 2;
         if (getDis(startSite, endSite) > 12 && getDis(startSite, endSite) <= 24)
-            return (int) (getDis(startSite, endSite)/6);
+            return Math.ceil(getDis(startSite, endSite)/6);
         if (getDis(startSite, endSite) > 24 && getDis(startSite, endSite) <= 40)
-            return (int) (getDis(startSite, endSite)/8);
+            return Math.ceil(getDis(startSite, endSite)/8);
         if (getDis(startSite, endSite) > 40 && getDis(startSite, endSite) <= 50)
-            return (int) (getDis(startSite, endSite)/10);
+            return Math.ceil(getDis(startSite, endSite)/10);
         if (getDis(startSite, endSite) > 50 )
-            return (int) (getDis(startSite, endSite)/20);
+            return Math.ceil(getDis(startSite, endSite)/20);
         return 0;
     }
 
