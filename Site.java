@@ -1,4 +1,3 @@
-package 大作业;
 
 public class Site {
     private int num;
