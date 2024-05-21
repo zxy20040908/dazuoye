@@ -1,4 +1,3 @@
-package 大作业;
 
 import 大作业.SubwaySystem;
 
