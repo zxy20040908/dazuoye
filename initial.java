@@ -11,7 +11,7 @@ import java.util.List;
 public class initial {
     public static void init(SubwaySystem subwaySystem) {
         try {
-            BufferedReader br = new BufferedReader(new FileReader("F:\\IntelliJ IDEA 2024.1\\intellij project\\learningproject\\src\\subway1.txt"));
+            BufferedReader br = new BufferedReader(new FileReader("F:\\IntelliJ IDEA 2024.1\\intellij project\\learningproject\\src\\大作业\\subway1.txt"));
             List<String[]> lineNamesList = new ArrayList<>();
             String line;
             while ((line = br.readLine()) != null) {

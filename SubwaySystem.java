@@ -1,6 +1,4 @@
 package 大作业;
-import java.math.BigDecimal;
-import java.util.*;
 import java.awt.Button;
 import java.awt.FlowLayout;
 import java.awt.Frame;
@@ -11,7 +9,7 @@ import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-
+import java.util.*;
 
 public class SubwaySystem {
     public static String[] lineNames1;
@@ -26,13 +24,15 @@ public class SubwaySystem {
     public static String[] lineNames10;
     public static String[] lineNames11;
     public static String[] lineNames12;
-    static String lineName;
 
-    public static String[] siteName = { "1号线", "2号线", "3号线", "4号线","5号线", "6号线", "7号线", "8号线", "阳逻线", "11号线","16号线","19号线" };
-    static List<Paths> route = new ArrayList();
+    static String lineName;
+    public static String[] siteName = { "1号线", "2号线", "3号线", "4号线", "5号线", "6号线", "7号线", "8号线", "阳逻线", "11号线", "16号线", "19号线" };
+    static List<Paths> route = new ArrayList<>();
+
     public static String getLineName() {
         return lineName;
     }
+
     public static void SearchLineByStation() {
         Scanner sc = new Scanner(System.in);
         System.out.println("请输入需要查询的站点名称：");
@@ -64,6 +64,44 @@ public class SubwaySystem {
         }
     }
 
+    // 新增的方法，查找并打印所有中转站
+    public static void findAndPrintTransferStations() {
+        Map<String, Set<String>> stationLinesMap = new HashMap<>();
+        Map<String, String[]> lineMap = new HashMap<>();
+        lineMap.put("1号线", lineNames1);
+        lineMap.put("2号线", lineNames2);
+        lineMap.put("3号线", lineNames3);
+        lineMap.put("4号线", lineNames4);
+        lineMap.put("5号线", lineNames5);
+        lineMap.put("6号线", lineNames6);
+        lineMap.put("7号线", lineNames7);
+        lineMap.put("8号线", lineNames8);
+        lineMap.put("阳逻线", lineNames9);
+        lineMap.put("11号线", lineNames10);
+        lineMap.put("16号线", lineNames11);
+        lineMap.put("19号线", lineNames12);
+
+        // 填充 stationLinesMap
+        for (Map.Entry<String, String[]> entry : lineMap.entrySet()) {
+            String lineName = entry.getKey();
+            String[] stationNames = entry.getValue();
+
+            for (String stationName : stationNames) {
+                stationLinesMap.putIfAbsent(stationName, new HashSet<>());
+                stationLinesMap.get(stationName).add(lineName);
+            }
+        }
+
+        // 查找并打印中转站
+        System.out.println("中转站：");
+        for (Map.Entry<String, Set<String>> entry : stationLinesMap.entrySet()) {
+            String stationName = entry.getKey();
+            Set<String> lines = entry.getValue();
+            if (lines.size() > 1) {
+                System.out.println(stationName + "经过的线路：" + lines);
+            }
+        }
+    }
 
     public static void main(String[] args) {
         SubwaySystem sub = new SubwaySystem();
@@ -77,6 +115,7 @@ public class SubwaySystem {
         });
         f.setBounds(400, 200, 800, 600);
         f.setLayout(new FlowLayout());
+
         Button bu = new Button("searchLineByStation");
         bu.setBounds(50, 50, 200, 100); // x, y, width, height
         f.add(bu);
@@ -93,8 +132,18 @@ public class SubwaySystem {
         f.add(bu2);
         bu2.addActionListener(e -> countPrice());
 
+        // 添加按钮以查找并打印中转站
+        Button bu3 = new Button("FindAndPrintTransferStations");
+        bu3.setBounds(110, 150, 200, 30); // x, y, width, height
+        f.add(bu3);
+        bu3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                findAndPrintTransferStations();
+            }
+        });
 
-        // 窗体显示
+        // 显示窗体
         f.setVisible(true);
 
         for (int i = 0; i < 12; i++) {
@@ -154,235 +203,161 @@ public class SubwaySystem {
     }
 
     public static List<Integer> getline(String name) {
-        List<Integer> lines = new ArrayList();
+        List<Integer> lines = new ArrayList<>();
         for (int j = 0; j < 9; j++) {
             for (int i = 0; i < route.get(j).getList().size(); i++) {
-                if (route.get(j).getList().get(i).getName().equals(name) == true)
+                if (route.get(j).getList().get(i).getName().equals(name))
                     lines.add(j);
             }
         }
         return lines;
     }
 
-    private static HashMap<Site, Result> resultMap = new HashMap<>();
-    private static List<Site> analysisList = new ArrayList<>();
+    public static Map<Site, Result> resultMap = new HashMap<>();
+    public static List<Site> analysisList = new ArrayList<>();
 
-    private static List<Site> getLinkStations(Site station) {
-        List<Site> linkedStaions = new ArrayList<Site>();
-        for (int j = 0; j < 12; j++) {
-            for (int i = 0; i < route.get(j).getList().size(); i++) {
-                if (station.equals(route.get(j).getList().get(i))) {
-                    if (i == 0) {
-                        linkedStaions.add(route.get(j).getList().get(i + 1));
-                    } else if (i == (route.get(j).getList().size() - 1)) {
-                        linkedStaions.add(route.get(j).getList().get(i - 1));
-                    } else {
-                        linkedStaions.add(route.get(j).getList().get(i + 1));
-                        linkedStaions.add(route.get(j).getList().get(i - 1));
-                    }
-                }
-            }
+    public static List<Site> getLinkStations(Site station) {
+        List<Site> linkedStaions = new ArrayList<>();
+        int line = station.getline();
+        if (station.getNum() != 0) {
+            linkedStaions.add(route.get(line).getList().get(station.getNum() - 1));
+        }
+        if (station.getNum() != route.get(line).getList().size() - 1) {
+            linkedStaions.add(route.get(line).getList().get(station.getNum() + 1));
+        }
+        for (int j = 0; j < route.get(station.getline()).getList().size(); j++) {
+            if (route.get(station.getline()).getList().get(j).getName().equals(station.getName())
+                    && station.getline() != route.get(station.getline()).getList().get(j).getline())
+                linkedStaions.add(route.get(station.getline()).getList().get(j));
         }
         return linkedStaions;
     }
 
-    private static Site getNextStation() {
-        Double min = Double.MAX_VALUE;
-        Site rets = null;
-        Set<Site> stations = resultMap.keySet();
-        for (Site station : stations) {
-            if (analysisList.contains(station)) {
-                continue;
-            }
-            Result result = resultMap.get(station);
-            result.setDistance(0.0D);
-            if (result.getDistance() < min) {
-                min = result.getDistance();
-                rets = result.getEnd();
-            }
-        }
-        return rets;
-    }
+    public static void printRoute(String start, String end) {
+        Site startStation = new Site(0.0, start, 0, 0);
+        Site endStation = new Site(0.0, end, 0, 0);
+        analysisList.clear();
+        resultMap.clear();
 
-    private static double doubleAdd(double v1, double v2) {
-        BigDecimal b1 = new BigDecimal(Double.toString(v1));
-        BigDecimal b2 = new BigDecimal(Double.toString(v2));
-        return b1.add(b2).doubleValue();
-    }
-
-    private static List<Site> getShortestRoute(String star, String end) {
-        Result result = calculate(new Site(star), new Site(end));
-        return result.getPassStations();
-    }
-
-    private static void printRoute(String start, String end) {
-        List<Integer> index = new ArrayList();
-        List<Site> way = getShortestRoute(start, end);
-
-        System.out.print(start);
-        for (int i = 0; i < way.size(); i++) {
-            System.out.print("→" + way.get(i).getName());
-        }
-        System.out.print("");
-    }
-
-    private static double getDis(String star, String end) {
-        List<Site> way = getShortestRoute(star, end);
-        double distance = 0.0d;
-        for (int i = 0; i < way.size() - 1; i++) {
-            if (way.get(i).getNum() > way.get(i + 1).getNum())
-                distance = distance + way.get(i + 1).getdis();
-            else
-                distance = distance + way.get(i).getdis();
-        }
-        distance = (double) (Math.round(distance * 1000) / 1000.0);
-        return distance;
-    }
-
-    private static double countFare(String startSite, String endSite) {
-        System.out.println("日票价格0元");
-        if (getDis(startSite, endSite) <= 4)
-            return 2;
-        if (getDis(startSite, endSite) > 12 && getDis(startSite, endSite) <= 24)
-            return Math.ceil(getDis(startSite, endSite)/6);
-        if (getDis(startSite, endSite) > 24 && getDis(startSite, endSite) <= 40)
-            return Math.ceil(getDis(startSite, endSite)/8);
-        if (getDis(startSite, endSite) > 40 && getDis(startSite, endSite) <= 50)
-            return Math.ceil(getDis(startSite, endSite)/10);
-        if (getDis(startSite, endSite) > 50 )
-            return Math.ceil(getDis(startSite, endSite)/20);
-        return 0;
-    }
-
-    private static Result calculate(Site star, Site end) {
-        for (int j = 0; j < 12; j++) {
-            for (int i = 0; i < route.get(j).getList().size(); i++) {
-                if (star.equals(route.get(j).getList().get(i)))
-                    star = route.get(j).getList().get(i);
+        for (int line : getline(start)) {
+            for (Site site : route.get(line).getList()) {
+                if (site.getName().equals(start)) {
+                    analysisList.add(site);
+                    resultMap.put(site, new Result(site, null, 0.0));
+                }
             }
         }
-        for (int j = 0; j < 12; j++) {
-            for (int i = 0; i < route.get(j).getList().size(); i++) {
-                if (end.equals(route.get(j).getList().get(i)))
-                    end = route.get(j).getList().get(i);
+
+        while (!analysisList.isEmpty()) {
+            double minDis = Double.MAX_VALUE;
+            Site minStation = null;
+            for (Site site : analysisList) {
+                if (resultMap.get(site).getDistance() < minDis) {
+                    minDis = resultMap.get(site).getDistance();
+                    minStation = site;
+                }
             }
-        }
-        if (!analysisList.contains(star)) {
-            analysisList.add(star);
-        }
-        if (star.equals(end)) {
-            Result result = new Result();
-            result.setDistance(0.0D);
-            result.setEnd(star);
-            result.setStar(star);
-            resultMap.put(star, result);
-            return resultMap.get(star);
-        }
-        if (resultMap.isEmpty()) {
-            List<Site> linkStations = getLinkStations(star);
-            for (Site station : linkStations) {
-                for (int j = 0; j < 12; j++) {
-                    for (int i = 0; i < route.get(j).getList().size(); i++) {
-                        if (station.equals(route.get(j).getList().get(i)))
-                            station = route.get(j).getList().get(i);
+
+            if (minStation == null || minStation.getName().equals(end)) {
+                endStation = minStation;
+                break;
+            }
+
+            analysisList.remove(minStation);
+            List<Site> linkedStations = getLinkStations(minStation);
+            for (Site site : linkedStations) {
+                double dis = resultMap.get(minStation).getDistance() + site.getdis();
+                if (resultMap.containsKey(site)) {
+                    if (resultMap.get(site).getDistance() > dis) {
+                        resultMap.get(site).setDistance(dis);
+                        List<Site> passStations = new ArrayList<>(resultMap.get(minStation).getPassStations());
+                        passStations.add(site);
+                        resultMap.get(site).setPassStations(passStations);
                     }
-                }
-                Result result = new Result();
-                result.setStar(star);
-                result.setEnd(station);
-                Double distance;
-                if (star.getNum() < station.getNum())
-                    distance = star.getdis();
-                else
-                    distance = station.getdis();
-                result.setDistance(distance);
-                result.getPassStations().add(station);
-                resultMap.put(station, result);
-            }
-        }
-        Site parent = getNextStation();
-        for (int j = 0; j < 12; j++) {
-            for (int i = 0; i < route.get(j).getList().size(); i++) {
-                if (parent.equals(route.get(j).getList().get(i)))
-                    parent = route.get(j).getList().get(i);
-            }
-        }
-        if (parent == null) {
-            Result result = new Result();
-            result.setDistance(0.0D);
-            result.setStar(star);
-            result.setEnd(end);
-            return resultMap.put(end, result);
-        }
-        if (parent.equals(end)) {
-            return resultMap.get(parent);
-        }
-        List<Site> childLinkStations = getLinkStations(parent);
-        for (Site child : childLinkStations) {
-            for (int j = 0; j < 12; j++) {
-                for (int i = 0; i < route.get(j).getList().size(); i++) {
-                    if (child.equals(route.get(j).getList().get(i)))
-                        child = route.get(j).getList().get(i);
+                } else {
+                    Result newResult = new Result(minStation, site, dis);
+                    List<Site> passStations = new ArrayList<>(resultMap.get(minStation).getPassStations());
+                    passStations.add(site);
+                    newResult.setPassStations(passStations);
+                    resultMap.put(site, newResult);
+                    analysisList.add(site);
                 }
             }
-            if (analysisList.contains(child)) {
-                continue;
-            }
-            Double distance;
-            if (parent.getNum() < child.getNum())
-                distance = parent.getdis();
-            else
-                distance = child.getdis();
-            if (parent.getName().equals(child.getName())) {
-                distance = 0.0D;
-            }
-            Double parentDistance = resultMap.get(parent).getDistance();
-            distance = doubleAdd(distance, parentDistance);
-            List<Site> parentPassStations = resultMap.get(parent).getPassStations();
-            Result childResult = resultMap.get(child);
-            if (childResult != null) {
-                if (childResult.getDistance() > distance) {
-                    childResult.setDistance(distance);
-                    childResult.getPassStations().clear();
-                    childResult.getPassStations().addAll(parentPassStations);
-                    childResult.getPassStations().add(child);
-                }
-            } else {
-                childResult = new Result();
-                childResult.setDistance(distance);
-                childResult.setStar(star);
-                childResult.setEnd(child);
-                childResult.getPassStations().addAll(parentPassStations);
-                childResult.getPassStations().add(child);
-            }
-            resultMap.put(child, childResult);
         }
-        analysisList.add(parent);
-        calculate(star, end);
-        return resultMap.get(end);
+
+        List<Site> finalList = resultMap.get(endStation).getPassStations();
+        for (int k = 0; k < finalList.size(); k++) {
+            System.out.print(finalList.get(k).getName() + " ");
+            if (k != 0 && !finalList.get(k).getName().equals(finalList.get(k - 1).getName())) {
+                System.out.print(finalList.get(k).getline() + "号线 ");
+            }
+        }
+        System.out.println();
     }
 
-    public static String[] getLineNames10() {
-        return lineNames10;
+    public static double getDis(String start, String end) {
+        Site startStation = new Site(0.0, start, 0, 0);
+        Site endStation = new Site(0.0, end, 0, 0);
+        analysisList.clear();
+        resultMap.clear();
+
+        for (int line : getline(start)) {
+            for (Site site : route.get(line).getList()) {
+                if (site.getName().equals(start)) {
+                    analysisList.add(site);
+                    resultMap.put(site, new Result(site, null, 0.0));
+                }
+            }
+        }
+
+        while (!analysisList.isEmpty()) {
+            double minDis = Double.MAX_VALUE;
+            Site minStation = null;
+            for (Site site : analysisList) {
+                if (resultMap.get(site).getDistance() < minDis) {
+                    minDis = resultMap.get(site).getDistance();
+                    minStation = site;
+                }
+            }
+
+            if (minStation == null || minStation.getName().equals(end)) {
+                endStation = minStation;
+                break;
+            }
+
+            analysisList.remove(minStation);
+            List<Site> linkedStations = getLinkStations(minStation);
+            for (Site site : linkedStations) {
+                double dis = resultMap.get(minStation).getDistance() + site.getdis();
+                if (resultMap.containsKey(site)) {
+                    if (resultMap.get(site).getDistance() > dis) {
+                        resultMap.get(site).setDistance(dis);
+                        List<Site> passStations = new ArrayList<>(resultMap.get(minStation).getPassStations());
+                        passStations.add(site);
+                        resultMap.get(site).setPassStations(passStations);
+                    }
+                } else {
+                    Result newResult = new Result(minStation, site, dis);
+                    List<Site> passStations = new ArrayList<>(resultMap.get(minStation).getPassStations());
+                    passStations.add(site);
+                    newResult.setPassStations(passStations);
+                    resultMap.put(site, newResult);
+                    analysisList.add(site);
+                }
+            }
+        }
+
+        return resultMap.get(endStation).getDistance();
     }
 
-    public static void setLineNames10(String[] lineNames10) {
-        SubwaySystem.lineNames10 = lineNames10;
-    }
-
-    public static String[] getLineNames11() {
-        return lineNames11;
-    }
-
-    public static void setLineNames11(String[] lineNames11) {
-        SubwaySystem.lineNames11 = lineNames11;
-    }
-
-    public static String[] getLineNames12() {
-        return lineNames12;
-    }
-
-    public static void setLineNames12(String[] lineNames12) {
-        SubwaySystem.lineNames12 = lineNames12;
+    public static double countFare(String start, String end) {
+        double dis = getDis(start, end);
+        if (dis < 4)
+            return 2.0;
+        if (dis < 12)
+            return 3.0;
+        if (dis < 24)
+            return 4.0;
+        return 5.0;
     }
 }
